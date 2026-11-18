@@ -38,6 +38,9 @@ pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--code);p
 .who{display:flex;gap:8px}
 .vb{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;margin:0;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .vb.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
+.line-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.line-head label{margin-bottom:0}
+.auto-status{min-height:18px}
 .vwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
 .vhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .vact{display:flex;gap:6px;flex-wrap:wrap}
@@ -123,9 +126,13 @@ pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--code);p
         <option value="warm and friendly">Friendly</option>
         <option value="calm, confident and premium">Premium and calm</option>
       </select>
-      <label for="line" class="gap">Nijer voiceover line (optional)</label>
+      <div class="line-head" style="margin-top:14px">
+        <label for="line">Nijer voiceover line (optional)</label>
+        <button type="button" class="vb" id="autoLine">Auto</button>
+      </div>
       <textarea id="line" placeholder="jemon: Eid er shera collection, ekhon Mim’s Drop e!"></textarea>
-      <div class="hint">Faka rakhle product description theke AI nijei choto voiceover likhe nibe. Likhle ei line ta-i bolbe.</div>
+      <div class="hint">Auto chaple product description theke upore je language select korecho (Bangla / English / Banglish) sei language-e 10-second video-r jonno voiceover line generate hobe. Nijer line likhle video-te oi line-i bolbe.</div>
+      <div class="hint auto-status" id="autoStatus" aria-live="polite"></div>
     </div>
   </div>
 
@@ -153,6 +160,7 @@ var HOOKS=[
  ["pov","POV unboxing snap","a quick first-person unboxing moment where the package snaps open to reveal {P}, followed by a fast cut to {M} smiling, synced with a crisp snap sound effect"]
 ];
 var mode=$("mode"),mOut=$("mOut"),desc=$("desc"),dM=$("dM"),dF=$("dF"),hook=$("hook"),vo=$("vo"),voice=$("voice"),tone=$("tone"),line=$("line"),out=$("out");
+var autoLine=$("autoLine"),autoStatus=$("autoStatus");
 
 HOOKS.forEach(function(h){var o=document.createElement("option");o.value=h[0];o.textContent=h[1];hook.appendChild(o)});
 COLORS.forEach(function(c){
@@ -250,6 +258,46 @@ function render(){
 }
 [mode,mOut,desc,dM,dF,hook,vo,voice,tone,line].forEach(function(e){e.addEventListener("input",render);e.addEventListener("change",render)});
 render();
+
+autoLine.onclick=function(){
+  var descriptions=subjects().map(function(s){return s.d}).filter(function(d){return d&&d.indexOf("[")!==0});
+  if(!descriptions.length){
+    autoStatus.textContent="Age product description din.";
+    return;
+  }
+  autoLine.disabled=true;
+  autoLine.textContent="Generating...";
+  autoStatus.textContent="";
+  fetch("https://voiceoverline.sultana-akter61983.workers.dev/generate-voiceover",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      productDescription:descriptions.join("\n"),
+      language:vo.value,
+      durationSeconds:10,
+      tone:tone.value,
+      voice:voice.value
+    })
+  }).then(function(response){
+    return response.json().then(function(data){
+      if(!response.ok||data.success===false){
+        throw new Error(data.details||data.error||"Voiceover generate hoy ni.");
+      }
+      var generated=data.voiceover||data.line||data.text;
+      if(typeof generated!=="string"||!generated.trim()){
+        throw new Error("API theke voiceover line paoa jay ni.");
+      }
+      line.value=generated.trim();
+      render();
+      autoStatus.textContent="Voiceover line generate hoyeche (server language: "+(data.language||"unknown - worker update koro")+").";
+    });
+  }).catch(function(error){
+    autoStatus.textContent="Voiceover generate hoy ni: "+error.message;
+  }).then(function(){
+    autoLine.disabled=false;
+    autoLine.textContent="Auto";
+  });
+};
 
 var IMG={male:{url:'https://i.postimg.cc/t4bXXvwz/Studio-Portrait-Contact-Sheet.png',name:'male-model'},female:{url:'https://i.postimg.cc/J0j9vMr8/Navy-Embroidered-Garden-Portrait-Collage.png',name:'female-model'}};
 var cur=null;
