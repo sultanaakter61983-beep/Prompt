@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mim’s Drop – Ad Prompt Generator</title>
+<style>
+:root{--bg:#faf7f5;--card:#fff;--text:#1d1a1a;--muted:#6f6762;--line:#e8e1dc;--accent:#e11d6a;--accent-t:#fff;--code:#f4efec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141112;--card:#1d191a;--text:#f3eeec;--muted:#a39a96;--line:#332c2d;--accent:#ff4d94;--accent-t:#1a0710;--code:#251f21}}
+:root[data-theme="dark"]{--bg:#141112;--card:#1d191a;--text:#f3eeec;--muted:#a39a96;--line:#332c2d;--accent:#ff4d94;--accent-t:#1a0710;--code:#251f21}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Bengali",sans-serif;line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:8px 0 2px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:8px}
+label.gap{margin-top:14px}
+input[type=text],textarea,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:15px}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font-size:13px;cursor:pointer}
+.chip i{width:14px;height:14px;border-radius:50%;border:1px solid var(--line);display:inline-block}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+.note{font-size:13.5px;background:var(--code);border-radius:10px;padding:10px 12px;margin-top:12px}
+.guide{font-size:13px;background:var(--code);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.guide b{color:var(--accent)}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.head b{font-size:14px}
+.copy{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-t);font:inherit;font-weight:600;font-size:14px;cursor:pointer}
+.copy.ok{background:#16a34a;color:#fff}
+.copy svg{width:18px;height:18px}
+pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--code);padding:14px;border-radius:10px;font-size:12.5px;line-height:1.55;max-height:420px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 2px}
+.top h1{margin:0}
+.who{display:flex;gap:8px}
+.vb{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;margin:0;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.vb.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
+.vwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.vhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.vact{display:flex;gap:6px;flex-wrap:wrap}
+.vimg{display:block;width:100%;max-height:480px;object-fit:contain;border-radius:10px;background:var(--code)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Mim’s Drop – Ad Prompt Generator</h1>
+    <div class="who">
+      <button type="button" class="vb" id="bMale">Male</button>
+      <button type="button" class="vb" id="bFemale">Female</button>
+    </div>
+  </div>
+  <p class="sub">Model select koro, product description dao, copy button chap dile ready prompt copy hobe.</p>
+
+  <div id="vwrap" class="vwrap hide">
+    <div class="vhead">
+      <b id="vtitle"></b>
+      <div class="vact">
+        <button type="button" class="vb" id="vdl">Download</button>
+        <button type="button" class="vb" id="vclose" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <img id="vimg" class="vimg" alt="Model reference">
+    <div id="vfail" class="note hide">Image ta ekhane load hoy ni (platform security). Image dekhte <a id="vlink" href="#" target="_blank" rel="noopener">original link</a> e click koro.</div>
+    <div class="hint" id="vmsg"></div>
+  </div>
+
+  <div class="card">
+    <label for="mode">Model setup</label>
+    <select id="mode">
+      <option value="male">Male model (1 jon)</option>
+      <option value="female">Female model (1 jon)</option>
+      <option value="both">Both (Male + Female)</option>
+    </select>
+
+    <div id="mBox" style="margin-top:14px">
+      <label for="mOut">Male model outfit (optional)</label>
+      <input type="text" id="mOut" placeholder="jemon: Black T-shirt (faka rakhle product-i porbe/use korbe)">
+      <div class="chips" id="chips"></div>
+      <div class="hint">T-shirt color dile oi T-shirt er upor e product dekhano hobe. Faka rakhle model shudhu mention kora product porbe ba use korbe.</div>
+    </div>
+    <div id="fNote" class="note hide">Female model er jonno outfit select korte hobe na. Se shudhu mention kora product-i porbe ba use korbe.</div>
+  </div>
+
+  <div class="card">
+    <div id="single">
+      <label for="desc">Product description</label>
+      <textarea id="desc" placeholder="jemon: Premium cotton panjabi, soft fabric, perfect for Eid and daily wear."></textarea>
+    </div>
+    <div id="dual" class="hide">
+      <label for="dM">Male product description</label>
+      <textarea id="dM" placeholder="jemon: Premium cotton panjabi, soft fabric, perfect for Eid."></textarea>
+      <label for="dF" class="gap">Female product description</label>
+      <textarea id="dF" placeholder="jemon: Soft georgette saree with golden border, perfect for wedding season."></textarea>
+    </div>
+    <div class="hint">2-3 line er moddhe rakho, tahole AI bhalo bujhe.</div>
+  </div>
+
+  <div class="card">
+    <label for="hook">Hook style (visual + sound diye)</label>
+    <select id="hook"></select>
+    <div class="hint">Hook ta dekhe ar sound effect diye attention nibe. Kotha/voice chaile niche Voiceover section use koro.</div>
+  </div>
+
+  <div class="card">
+    <label for="vo">Voiceover (product description theke)</label>
+    <select id="vo">
+      <option value="none">Kono voiceover na (silent ad)</option>
+      <option value="bn">Bangla voiceover</option>
+      <option value="en">English voiceover</option>
+      <option value="mix">Banglish (Bangla + English mix)</option>
+    </select>
+    <div id="voBox" class="hide" style="margin-top:14px">
+      <label for="voice">Voice type</label>
+      <select id="voice"><option value="female">Female</option><option value="male">Male</option></select>
+      <label for="tone" class="gap">Tone</label>
+      <select id="tone">
+        <option value="energetic and exciting">Energetic</option>
+        <option value="warm and friendly">Friendly</option>
+        <option value="calm, confident and premium">Premium and calm</option>
+      </select>
+      <label for="line" class="gap">Nijer voiceover line (optional)</label>
+      <textarea id="line" placeholder="jemon: Eid er shera collection, ekhon Mim’s Drop e!"></textarea>
+      <div class="hint">Faka rakhle product description theke AI nijei choto voiceover likhe nibe. Likhle ei line ta-i bolbe.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="guide" id="guide"></div>
+    <div class="head">
+      <b>Ready prompt</b>
+      <button class="copy" id="copy" type="button" aria-label="Copy prompt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        <span id="copyLabel">Copy</span>
+      </button>
+    </div>
+    <pre id="out"></pre>
+  </div>
+</div>
+
+<script>
+var $=function(id){return document.getElementById(id)};
+var COLORS=[["Black","#111"],["White","#fff"],["Navy Blue","#1f2a5a"],["Maroon","#6d1a2b"],["Olive Green","#5a6b2f"],["Sky Blue","#7ec8f0"],["Mustard","#d9a521"],["Grey","#8a8a8a"]];
+var HOOKS=[
+ ["flash","Dramatic flash close-up of the product","a sudden extreme close-up of {P} with a dramatic light flash and a quick camera push-in, synced with a bass-drop sound hit"],
+ ["surprise","Model surprise reaction","{M} reacting with big surprise and excitement and a delighted smile, then a fast whip-pan reveal of {P}, synced with a punchy sound hit"],
+ ["whip","Fast whip-pan reveal","a fast whip-pan transition that snaps into a sharp, glowing reveal of {M} with {P}, synced with a whoosh sound effect"],
+ ["drop","Product drop / slam into frame","{P} dropping or sliding into frame in slow-motion with a small burst of light and dust particles, then speeding up, synced with an impact sound effect"],
+ ["pov","POV unboxing snap","a quick first-person unboxing moment where the package snaps open to reveal {P}, followed by a fast cut to {M} smiling, synced with a crisp snap sound effect"]
+];
+var mode=$("mode"),mOut=$("mOut"),desc=$("desc"),dM=$("dM"),dF=$("dF"),hook=$("hook"),vo=$("vo"),voice=$("voice"),tone=$("tone"),line=$("line"),out=$("out");
+
+HOOKS.forEach(function(h){var o=document.createElement("option");o.value=h[0];o.textContent=h[1];hook.appendChild(o)});
+COLORS.forEach(function(c){
+  var b=document.createElement("button");b.type="button";b.className="chip";
+  b.innerHTML='<i style="background:'+c[1]+'"></i>'+c[0];
+  b.onclick=function(){mOut.value=c[0]+" T-shirt";render()};
+  $("chips").appendChild(b);
+});
+
+function subjects(){
+  var m=mode.value;
+  if(m==="both")return [
+    {ref:"@male_model",g:"male",p:"@male_product",d:dM.value.trim()||"[Male product description]",o:mOut.value.trim()},
+    {ref:"@female_model",g:"female",p:"@female_product",d:dF.value.trim()||"[Female product description]",o:""}];
+  var d=desc.value.trim()||"[Product description]";
+  if(m==="female")return [{ref:"@female_model",g:"female",p:"@product",d:d,o:""}];
+  return [{ref:"@male_model",g:"male",p:"@product",d:d,o:mOut.value.trim()}];
+}
+
+function build(){
+  var S=subjects(),two=S.length>1;
+  var M=S.map(function(s){return s.ref}).join(" and ");
+  var P=S.map(function(s){return s.p}).join(" and ");
+  var h=HOOKS.filter(function(x){return x[0]===hook.value})[0][2].split("{M}").join(M).split("{P}").join(P);
+  var on=vo.value!=="none";
+
+  var refs=[];
+  S.forEach(function(s){refs.push("- "+s.ref+" : the exact "+s.g+" model/person from the reference image. Keep face, skin tone, hairstyle and body identical. Do not alter or replace the model.")});
+  S.forEach(function(s){refs.push("- "+s.p+" : the exact product"+(two?" for the "+s.g+" model":"")+". Keep design, color, shape, packaging and label unchanged. No redesign, no modification.")});
+
+  var outfits=S.map(function(s){
+    return s.o
+      ?"OUTFIT of "+s.ref+": "+s.o+". Keep this outfit plain and unbranded. Show "+s.p+" clearly on top of or together with this "+s.o+" so the product is the hero. Only this outfit is added; the model stays identical."
+      :"OUTFIT of "+s.ref+": no separate outfit specified. "+s.ref+" simply wears or uses "+s.p+" exactly as shown in its reference image (wear it if it is wearable, otherwise hold or use it naturally). Do not invent any other outfit that hides or changes the product.";
+  }).join("\n");
+
+  var descs=two
+    ?S.map(function(s){return "PRODUCT DESCRIPTION ("+s.p+", for the "+s.g+" model):\n"+s.d}).join("\n\n")
+    :"PRODUCT DESCRIPTION:\n"+S[0].d;
+
+  var langMap={bn:"Bangla (natural Bangladeshi Bengali)",en:"English",mix:"Banglish (natural mix of Bangla and English, like Bangladeshi social media ads)"};
+  var custom=line.value.trim();
+  var audio=on
+    ?"Upbeat modern background music with a catchy beat, light sound effects synced to the cuts, with a strong sound hit on the hook. Add an off-screen "+voice.value+" voiceover in "+langMap[vo.value]+", "+tone.value+" tone. "+(custom?"The voiceover must say exactly this: \""+custom+"\".":"Write a very short voiceover (max 18-20 words, about 8 seconds) based on the PRODUCT DESCRIPTION above: start with a catchy hook line in the first 2 seconds, mention the top 1-2 benefits using only facts from the description, and end by saying \"Mim's Drop\" in the last second. Do not invent features, prices or offers.")+" Keep the voice clear and well-paced, sitting above the background music. No on-camera lip-sync."
+    :"Upbeat modern background music with a catchy beat, light sound effects synced to the cuts (including a strong sound hit on the hook). No voiceover, no spoken words, no dialogue.";
+
+  var rules=[
+    "- Absolutely NO on-screen text, captions, subtitles or watermarks.",
+    "- The only text allowed is the natural text already on the product packaging.",
+    "- Exception: professional ad elements such as a clean brand name reveal (\"Mim's Drop\") at the end, a subtle light sweep, or a product highlight are allowed if the ad needs them.",
+    on?"- The models do not speak on camera and there is no lip-sync. Any voice is an off-screen voiceover only.":"- NO talking: the models do not speak, no lip-sync, no dialogue, no voiceover. All storytelling is visual and through music and sound effects.",
+    "- Model(s) and product(s) must look 100% consistent in every frame."
+  ];
+  if(two)rules.push("- Keep the two models clearly distinct. Each model shows only their own product. Never swap, merge or mix the models or the products.");
+
+  return [
+"Create a 10-second professional vertical (9:16) commercial video ad for the Bangladesh market.",
+"",
+"REFERENCE ASSETS (use exactly as provided):",
+refs.join("\n"),
+"",
+"SHOP NAME: Mim's Drop",
+"",
+outfits,
+"",
+descs,
+"",
+"STRICT RULES:",
+rules.join("\n"),
+"",
+"STRUCTURE (10 seconds):",
+"0-2s (HOOK): A bold, scroll-stopping opening in the very first second: "+h+". It must grab attention instantly."+(on?" The voiceover also opens with a short, catchy hook line.":" No spoken words, purely visual."),
+"2-6s (ENGAGEMENT): "+(two?M+" interact naturally with each other, each clearly wearing, using or presenting their own product ("+P+")":M+" confidently wears, uses or presents "+P)+" in a real Bangladeshi lifestyle setting. Smooth cinematic camera movement (slow push-in, gentle orbit), natural expressions, warm genuine smile. Show the key benefit visually, based on the description above.",
+"6-9s (PAYOFF): Premium hero close-up of "+P+" with soft studio lighting, shallow depth of field, rich textures. Cut back to "+(two?M+" together showing their products":M+" showing the product")+", looking at the camera with confidence (no on-camera speaking).",
+"9-10s (BRAND): Clean, elegant end frame with the brand name \"Mim's Drop\" appearing smoothly in stylish modern typography alongside "+P+", minimal and premium.",
+"",
+"STYLE:",
+"Cinematic commercial look, high-end TV ad quality, sharp 4K detail, natural skin texture, soft warm lighting, balanced color grading, shallow depth of field, smooth motion, vibrant but realistic colors, modern Bangladeshi setting (relevant to the product).",
+"",
+"AUDIO:",
+audio
+  ].join("\n");
+}
+
+function render(){
+  var m=mode.value;
+  $("mBox").classList.toggle("hide",m==="female");
+  $("fNote").classList.toggle("hide",m==="male");
+  $("single").classList.toggle("hide",m==="both");
+  $("dual").classList.toggle("hide",m!=="both");
+  $("voBox").classList.toggle("hide",vo.value==="none");
+  var g={male:"@male_model, @product",female:"@female_model, @product",both:"@male_model, @female_model, @male_product, @female_product"}[m];
+  $("guide").innerHTML="Google Flow e ei gulo <b>@</b> diye mention koro: <b>"+g+"</b>";
+  out.textContent=build();
+}
+[mode,mOut,desc,dM,dF,hook,vo,voice,tone,line].forEach(function(e){e.addEventListener("input",render);e.addEventListener("change",render)});
+render();
+
+var IMG={male:{url:'https://i.postimg.cc/t4bXXvwz/Studio-Portrait-Contact-Sheet.png',name:'male-model'},female:{url:'https://i.postimg.cc/J0j9vMr8/Navy-Embroidered-Garden-Portrait-Collage.png',name:'female-model'}};
+var cur=null;
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+function toast(t){var n=$('vmsg');n.textContent=t;clearTimeout(toast.t);toast.t=setTimeout(function(){n.textContent=''},4500)}
+function closeViewer(){cur=null;$('vwrap').classList.add('hide');$('bMale').classList.remove('on');$('bFemale').classList.remove('on')}
+function openViewer(k){
+  if(cur===k){closeViewer();return}
+  cur=k;
+  $('vwrap').classList.remove('hide');
+  $('vtitle').textContent=k==='male'?'Male model':'Female model';
+  $('bMale').classList.toggle('on',k==='male');$('bFemale').classList.toggle('on',k==='female');
+  var im=$('vimg');
+  $('vfail').classList.add('hide');im.classList.remove('hide');$('vmsg').textContent='';
+  im.onerror=function(){im.classList.add('hide');$('vfail').classList.remove('hide')};
+  im.src=lsGet('img_'+k)||IMG[k].url;
+  $('vlink').href=IMG[k].url;
+}
+$('bMale').onclick=function(){openViewer('male')};
+$('bFemale').onclick=function(){openViewer('female')};
+$('vclose').onclick=closeViewer;
+function dataToBlob(u){var p=u.split(','),m=/data:(.*?);/.exec(p[0])[1],b=atob(p[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new Blob([a],{type:m})}
+function pngBlob(){return new Promise(function(res,rej){var i=$('vimg'),c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;try{c.getContext('2d').drawImage(i,0,0);c.toBlob(function(b){b?res(b):rej()},'image/png')}catch(e){rej(e)}})}
+var vc=$('vcopy');if(vc)vc.onclick=function(){
+  pngBlob().then(function(b){return navigator.clipboard.write([new ClipboardItem({'image/png':b})])})
+  .then(function(){toast('Image copy hoyeche. Ekhon paste korte paro.')})
+  .catch(function(){toast('Direct copy hoy ni. Image e right-click ba long-press kore Copy image koro.')});
+};
+$('vdl').onclick=function(){
+  var s=$('vimg').src,p=s.indexOf('data:')===0?Promise.resolve(dataToBlob(s)):pngBlob();
+  p.then(function(b){
+    var ext=b.type==='image/jpeg'?'.jpg':'.png';
+    if(!(window.claude&&claude.use))throw 0;
+    return claude.use('downloads').then(function(d){if(!d)throw 0;return d.save({filename:IMG[cur].name+ext,data:b})});
+  }).then(function(){toast('Download hoyeche.')})
+  .catch(function(e){if(e&&e.code==='declined')return;toast('Download hoy ni. Image e right-click ba long-press kore Save image koro.')});
+};
+var vf=$('vfile');if(vf)vf.onchange=function(){
+  var f=this.files[0];if(!f||!cur)return;
+  var k=cur,r=new FileReader();
+  r.onload=function(){
+    var i=new Image();
+    i.onload=function(){
+      var s=Math.min(1,1600/Math.max(i.naturalWidth,i.naturalHeight)),c=document.createElement('canvas');
+      c.width=Math.round(i.naturalWidth*s);c.height=Math.round(i.naturalHeight*s);
+      c.getContext('2d').drawImage(i,0,0,c.width,c.height);
+      var d=c.toDataURL('image/jpeg',0.9),ok=lsSet('img_'+k,d);
+      $('vfail').classList.add('hide');$('vimg').classList.remove('hide');$('vimg').src=d;
+      toast(ok?'Image save hoyeche, porer bar-o ekhane dekhabe.':'Image dekhano hocche, kintu browser e save hoy ni.');
+    };
+    i.src=r.result;
+  };
+  r.readAsDataURL(f);this.value='';
+};
+
+function fallbackCopy(t){
+  var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";
+  document.body.appendChild(a);a.select();
+  var ok=false;try{ok=document.execCommand("copy")}catch(e){}
+  document.body.removeChild(a);return ok;
+}
+$("copy").onclick=function(){
+  var t=build(),btn=$("copy");
+  function done(){
+    btn.classList.add("ok");$("copyLabel").textContent="Copied!";
+    setTimeout(function(){btn.classList.remove("ok");$("copyLabel").textContent="Copy"},1800);
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(done,function(){if(fallbackCopy(t))done()});
+  }else if(fallbackCopy(t)){done()}
+};
+</script>
+</body>
+</html>
